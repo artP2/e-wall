@@ -22,6 +22,8 @@ class Imshower:
 
 def main():
     img = iio.imread("./wall_low.jpg")
+    # downscale image
+    img = cv2.resize(img, (512, 512), interpolation=cv2.INTER_AREA)
 
     _, axs = plt.subplots(nrows=2, ncols=3, figsize=(15,5),sharex=True, sharey=True)
     axs= axs.flatten()
