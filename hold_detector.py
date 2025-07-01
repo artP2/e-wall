@@ -47,6 +47,12 @@ def main(img_path):
     img_blur = cv2.GaussianBlur(img, ksize=(3,3), sigmaX=0)
     img_lab = cv2.cvtColor(img_blur, cv2.COLOR_RGB2LAB)
 
+    # chalk mask
+    L_channel = img_lab[:, :, 0]
+    chalk_mask = L_channel > 170 
+    img_lab[chalk_mask] = [0, 0, 0]
+
+
     # superpixel segmentation using SLIC
     slic = cv2.ximgproc.createSuperpixelSLIC(img_lab, algorithm=cv2.ximgproc.SLIC)
     slic.iterate(10)
@@ -120,7 +126,7 @@ def main(img_path):
     imshow(labels_vis, f"Connected Components ({connectivity}-conn)\nTotal: {num_labels-1}")
 
     # bounding boxes
-    min_blob_size = 350
+    min_blob_size = 300
     img_with_boxes = img.copy()
     blob_count = 0
 
