@@ -68,7 +68,6 @@ def main(img_path):
     for i in range(slic.getNumberOfSuperpixels()):
         mask = labels == i
         img_median[mask] = img_median[mask].mean(axis=0)
-    imshow(cv2.cvtColor(img_median.astype(np.uint8), cv2.COLOR_LAB2RGB))
 
     Z = img_median.reshape((-1,3))
     Z = Z.astype(np.float32)
@@ -94,7 +93,18 @@ def main(img_path):
     mask = cv2.GaussianBlur(mask, ksize=(3,3), sigmaX=0)
     imshow(mask, "Binary Mask")
 
-    holds = cv2.bitwise_and(img, img, mask=mask)
+    # apply morphological operations
+    kernel = np.ones((5,5), np.uint8)
+    
+    # closing - dilation followed by erosion
+    mask_closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    
+    # opening - erosion followed by dilation
+    mask_opened = cv2.morphologyEx(mask_closed, cv2.MORPH_OPEN, kernel)
+    
+    imshow(mask_opened, "Binary Mask After Morpho")
+
+    holds = cv2.bitwise_and(img, img, mask=mask_closed)
     imshow(holds, "Final Result")
 
     plt.tight_layout()
