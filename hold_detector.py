@@ -37,7 +37,7 @@ def main(img_path):
     # downscale image
     img = cv2.resize(img, (512, 512), interpolation=cv2.INTER_AREA)
 
-    _, axs = plt.subplots(nrows=2, ncols=3, figsize=(15,5),sharex=True, sharey=True)
+    _, axs = plt.subplots(nrows=3, ncols=3, figsize=(15,10),sharex=True, sharey=True)
     axs= axs.flatten()
 
     imshow = Imshower(axs)
@@ -104,8 +104,33 @@ def main(img_path):
     
     imshow(mask_opened, "Binary Mask After Morpho")
 
-    holds = cv2.bitwise_and(img, img, mask=mask_closed)
-    imshow(holds, "Final Result")
+    # pixel connectivity
+    connectivity = 4; 
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
+        mask_opened, 
+        connectivity, 
+        ltype=cv2.CV_32S
+    )
+
+    labels_vis = cv2.applyColorMap(
+        (labels * (255 / num_labels)).astype(np.uint8), 
+        cv2.COLORMAP_JET
+    )
+    labels_vis[mask_opened == 0] = 0  # black background
+    imshow(labels_vis, f"Connected Components ({connectivity}-conn)\nTotal: {num_labels-1}")
+
+    # bounding boxes
+    min_blob_size = 350
+    img_with_boxes = img.copy()
+    blob_count = 0
+
+    for i in range(1, num_labels):  # skip background (label 0)
+        x, y, w, h, area = stats[i]
+        if area >= min_blob_size:
+            blob_count += 1
+            cv2.rectangle(img_with_boxes, (x,y), (x+w,y+h), (0,255,0), 2)
+
+    imshow(img_with_boxes, f"Bounding Boxes (>{min_blob_size}px)\nBlobs: {blob_count}")
 
     plt.tight_layout()
     plt.show()
