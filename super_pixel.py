@@ -5,6 +5,7 @@ import imageio.v3 as iio
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 class Imshower:
     i = 0
@@ -20,8 +21,17 @@ class Imshower:
         self.i += 1
 
 
-def main():
-    img = iio.imread("./wall_low.jpg")
+def main(img_path):
+    # load image
+    try:
+        img = iio.imread(img_path)
+    except FileNotFoundError:
+        print(f"Error: file not found - {img_path}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error loading image: {e}")
+        sys.exit(1)
+
     # downscale image
     img = cv2.resize(img, (512, 512), interpolation=cv2.INTER_AREA)
 
@@ -97,4 +107,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if  len(sys.argv) != 2:
+        print(f"Use: python {sys.argv[0]} <path/to/img>")
+        sys.exit(1)
+        
+    img_path = sys.argv[1]
+    main(img_path)
